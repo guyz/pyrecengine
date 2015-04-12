@@ -1,3 +1,4 @@
 .project
 .pydevproject
 src/*.pyc
+src/.ipynb_checkpoints/*
