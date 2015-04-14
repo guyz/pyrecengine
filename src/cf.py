@@ -74,8 +74,8 @@ class MF(object):
             for batch in xrange(n_batches):
                 print 'epoch %d batch %d' % (epoch, batch)
                 
-                u_idx   = X_train[batch*N:(batch+1)*N,0]
-                i_idx   = X_train[batch*N:(batch+1)*N,1]
+                u_idx   = X_train[batch*N:(batch+1)*N,0].astype(int)
+                i_idx   = X_train[batch*N:(batch+1)*N,1].astype(int)
                 rating  = X_train[batch*N:(batch+1)*N,2]
                 
                 ### compute cost and predictions
@@ -83,7 +83,7 @@ class MF(object):
                 err_ui  = (pred - rating)
                 
                 cost_func = np.sum(err_ui**2 + 0.5*(self._lambda_pq*np.sum( (self._Q[i_idx,:]**2 + self._P[u_idx,:]**2),1) + 
-                                             self._lambda_bw*np.sum(np.sum(self._b_u[u_idx]**2) + np.sum(self._b_i[i_idx]**2) )))
+                                             self._lambda_bw*(self._b_u[u_idx]**2 + self._b_i[i_idx]**2 ) ))
                 
                 ### compute gradients
                 IO      = np.tile(2*err_ui,(self._n_feat,1)).T
@@ -120,11 +120,8 @@ class MF(object):
             ### epoch complete
             curr_err = np.sqrt(cost_func/N)
             err_train.append(curr_err)
-            
+                    
             print 'epoch %d train error=%f' % (epoch, curr_err)
-            
-            
-        
     
 class ContentMF(MF):
     '''
@@ -143,8 +140,8 @@ class ContentMF(MF):
 # TODO: move tests to another file.
 import cPickle
 X = cPickle.load(open('/Users/GuyZ/Dropbox (MIT)/mit/grad/courses/cs181 machine learning/practicals/p3/data/train_set.pkl', 'rb'))
-mf = MF(233286, 2000)
-X1 = X
-X1[:,2] = np.log(X1[:,2])
+mf = MF(233286, 2000, lambda_bw=1.0)
+X1 = X.copy().astype(float)
+X1[:,2] = np.log(X1[:,2]*1.0)
 mf.fit(X1)
         
